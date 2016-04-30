@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Cube Practice 4</title>
+<meta charset="utf-8">
+<style>
+body{
+background-color:#000000;
+overflow:hidden;
+margin:0px;
+}
+</style>
+</head>
+
+<body>
+ <script src="../build/three.min.js"></script>
+ <script>
+ 
+ //boot vars
+ var camera, scene, renderer;
+ var raycaster, cube, stats;
+ var cubes = [];
+ var cubenum = 100;
+ var cubedim = 80;
+ var theta = 0.01;
+ var delta = 0.01;
+ var initampl = 250;
+ var ampinc = 0;
+ 
+ 
+ var r = 1;
+ var a = 3;
+ var b = 1;
+ 
+ function CubeClass(x, y, z, r, shape, angle){
+ this.x = x;
+ this.y = y;
+ this.z = z;
+ this.r = r;
+ this.shape = null;
+ this.angle = angle;
+ }
+
+ init();
+ animate();
+ 
+
+ //init
+	
+	function init()
+	{
+	//create camera, scene, cube, renderer
+	camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 10000);
+	camera.position.z = 1000;
+
+	scene = new THREE.Scene();
+	
+	var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 1, 1, 1 ).normalize();
+				scene.add( light );
+	
+	var geometry = new THREE.BoxGeometry(cubedim, cubedim, cubedim);
+	var material = new THREE.MeshLambertMaterial({color: 0xfff0f2});
+	
+//The archemedian spiral are formed when a point moves uniformly along a radius AND a constant angular velocity.
+//so if I increase the amplitude uniformly AND theta uniformly, I should create an archemedian spiral.
+//what about this? cube.position.x = 10*i*Math.cos(i); cube.position.y = 10*i*Math.sin(i);
+//I have the radius increasing by 50, and the angle increasing by 1. 
+//I get this twisted starfish thing...maybe it's because polar vs cartesian require different things. 
+//can I translate r to ampl? Yes but I realize, that because in the formula a and b can be 0 and 1 respectivly 
+//it doesn't make a difference. SO I tried scaling it to 2*Math.PI and got PART of a spiral curve, so I went *4 on
+//the denominator and got a pretty good ArcheSpiral I think...Also increased the cubenum to 100. 
+//cube.position.x = 10*i*Math.cos(2*Math.PI*i/cubenum*4); cube.position.y = 10*i*Math.sin(2*Math.PI*i/cubenum*4); 
+//success! So it seems part of the issue was scaling it to some multiple of 2*PI. I just thought that should
+//work based on the example on http://www.mathematische-basteleien.de/spiral.htm that uses that unit circle thing
+//in the first examples and the idea that if it's uniform angular vel then what could be more uniform that a factor of 2*PI...
+//also I think I was assuming that i++ when put into the cos/sin functions would come out as uniform but actually I 
+//think that at least they wont be the same angles  as the thing loops. If it goes 40deg then 50 deg then 70 deg then 100 deg
+//then it's not uniform...I think I need to look into sin and cos more...
+//Basics!
+
+
+		for(i = 0; i<cubenum; i++)
+			{
+			cube = new THREE.Mesh(geometry, material);
+			
+			cube.position.x = 10*i*Math.cos(2*Math.PI*i/cubenum*4); 
+			cube.position.y = 10*i*Math.sin(2*Math.PI*i/cubenum*4); 
+			
+			cube.position.z = 0;    //weird thing happens at multiples of 5
+			var object = new CubeClass(cube.position.x, cube.position.y, cube.position.z, 10*i, cube, 2*Math.PI*i/cubenum*4 );
+			cubes.push(object);     //well I use 19 down here
+			//console.log(object.x);	  //because I added more blocks?
+			
+			scene.add(cube);
+			
+			}
+	
+	
+	renderer = new THREE.WebGLRenderer();
+	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	document.body.appendChild(renderer.domElement);
+	
+	window.addEventListener('resize', onWindowResize, false);
+	}
+	
+ 
+ //on window resize
+ function onWindowResize()
+ {
+ camera.aspect(window.innerWidth / window.innerHeight);
+ camera.updateProjectionMatrix()
+ renderer.setSize(window.innerWidth, window.innerHeight);
+ }
+
+ //animate
+ function animate()
+ {
+ console.log(scene.children.length);
+ requestAnimationFrame(animate);
+ 
+ //theta += 0.01; // cool thing at /100
+
+
+ for(i = 0; i< scene.children.length; i++)
+	{
+	var object = scene.children[i];
+	
+	if(object instanceof THREE.Mesh) 
+		{
+
+			cubes[i-1].r -= 1;//here I decrease the radius by 10 which is the same as the scaling factor in the initialization so...
+			cubes[i-1].angle -= (2*Math.PI*1/cubenum*4)/10; //here I use the smallest angle of percentage based on the initialization so...
+														//and the scaling factor of 4, actually now I divided both by 10 to slow it down
+			
+			//cubes[i-1].z -= 3;//push cubes slowly back in space too
+			
+			object.rotation.x += 0.05;
+			object.position.x = (cubes[i-1].r)*Math.cos(cubes[i-1].angle); //so far same everything as what is passed to cubes objects
+			object.position.y = (cubes[i-1].r)*Math.sin(cubes[i-1].angle); 
+			//object.position.z = cubes[i-1].z;
+		if(cubes[i-1].r <=1)
+			{
+			cubes[i-1].r = 10*(cubenum-1); //largest radius based on scaling of 10 and cubenum(i) so it goes to the far end of the spiral path
+			cubes[i-1].angle = 2*Math.PI*((cubenum-1)/cubenum)*4; //largest degrees based init
+			//cubes[i-1].z = 0;       //useing cubenum - 1 for reset, no real change
+			}
+		//if a cube's ampl is close to 0, return it to it's init val and it's z val too
+		
+		}	//one problem I can think of is that the is for this and the init are different and I haven't taken that into account. 
+				//oh I realized I still passed in the original values.
+	}			//got there!
+	
+	//if(delta >= 1.2){delta = 0}
+	
+	renderer.render(scene, camera);
+ 
+ }
+ 
+ 
+ 
+ </script>
+</body>
+
+</html>

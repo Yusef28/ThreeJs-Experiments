@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Cube Practice 4</title>
+<meta charset="utf-8">
+<style>
+body{
+background-color:#000000;
+overflow:hidden;
+margin:0px;
+}
+</style>
+</head>
+
+<body>
+ <script src="../build/three.min.js"></script>
+ <script>
+ 
+ //boot vars
+ var camera, scene, renderer;
+ var raycaster, cube, stats;
+ var cubes = [];
+ var cubenum = 100;
+ var cubedim = 50;
+ var theta = 0.01;
+ var delta = 0.01;
+ var initampl = 250;
+ var ampinc = 0;
+ 
+ function CubeClass(x, y, z, r, shape, angle){
+ this.x = x;
+ this.y = y;
+ this.z = z;
+ this.r = r;
+ this.shape = null;
+ this.angle = angle;
+ }
+
+ init();
+ animate();
+ 
+
+ //init
+	
+	function init()
+	{
+	//create camera, scene, cube, renderer
+	camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 10000);
+	camera.position.z = 400;
+
+	scene = new THREE.Scene();
+	
+	var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 1, 1, 1 ).normalize();
+				scene.add( light );
+	
+	var geometry = new THREE.BoxGeometry(cubedim, cubedim, cubedim);
+	var material = new THREE.MeshLambertMaterial({color: 0x4B0082});
+	
+
+		
+		for(i = 0; i<cubenum; i++)
+			{
+			cube = new THREE.Mesh(geometry, material); //times 5 is so at start blocks aren't all bunched up
+			cube.position.x = (initampl*(i/cubenum))*Math.cos(2*Math.PI*((i*9)/cubenum)); //(2*Math.PI*(i/cubenum)); makes it only one full turn
+			cube.position.y = (initampl*(i/cubenum))*Math.sin(2*Math.PI*((i*9)/cubenum)); //so i*9 makes 9 full turns and also 9 gives right shape
+			cube.position.z = 0;                              							// weird thing happens at multiples of 5
+			var object = new CubeClass(cube.position.x, cube.position.y, cube.position.z, initampl*(i/cubenum), cube, 2*Math.PI*((i*19)/cubenum) );
+			cubes.push(object);                   																		//well I use 19 down here
+			//console.log(object.x);																					//because I added more blocks?
+			console.log(cubes[i].r);
+			scene.add(cube);
+			//theta+=0.5;
+			}
+	
+	
+	renderer = new THREE.WebGLRenderer();
+	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	document.body.appendChild(renderer.domElement);
+	
+	window.addEventListener('resize', onWindowResize, false);
+	}
+	
+function spiral(i)//takes in cubes array and uses it to set values of the cubes
+{
+ console.log(cubes[5].r);
+}
+ 
+ //on window resize
+ function onWindowResize()
+ {
+ camera.aspect(window.innerWidth / window.innerHeight);
+ camera.updateProjectionMatrix()
+ renderer.setSize(window.innerWidth, window.innerHeight);
+ }
+
+ //animate
+ function animate()
+ {
+ console.log(scene.children.length);
+ requestAnimationFrame(animate);
+ 
+ theta += 0.05; // cool thing at /100
+ 
+ ampinc = 1 ;
+
+ for(i = 0; i< scene.children.length; i++)
+	{
+	var object = scene.children[i];
+	
+	if(object instanceof THREE.Mesh) 
+		{
+		
+		//spiral(i);
+			cubes[i-1].r -= 1//ampinc//reduce each cube's amplitude [i-1] because we added a light to the scene before the cubes.
+			cubes[i-1].z -= 3;//push cubes slowly back in space too
+			
+			
+			object.rotation.x += 0.05;
+			object.position.x = (cubes[i-1].r)*Math.cos(cubes[i-1].angle+theta);//the original angle value + theta, and the ampl
+			object.position.y = (cubes[i-1].r)*Math.sin(cubes[i-1].angle+theta); //between -250 and 250
+			object.position.z = cubes[i-1].z;
+		if(cubes[i-1].r <=8){cubes[i-1].r = initampl;cubes[i-1].z = 0;}
+		//if a cubes ampl is close to 0, return it to it's init val and it's z val too
+		
+		}
+	}
+	
+	//if(delta >= 1.2){delta = 0}
+	
+	renderer.render(scene, camera);
+ 
+ }
+ 
+ 
+ 
+ </script>
+</body>
+
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Cube Practice 4</title>
+<meta charset="utf-8">
+<style>
+body{
+background-color:#000000;
+overflow:hidden;
+margin:0px;
+}
+</style>
+</head>
+
+<body>
+ <script src="../build/three.min.js"></script>
+ <script>
+ 
+ //boot vars
+ var camera, scene, renderer;
+ var raycaster, cube, stats;
+ var cubes = [];
+ var cubenum = 50;
+ var cubedim = 10;
+ var theta = 0.01;
+ var delta = 0.01;
+ var initampl = 250;
+ var ampinc = 0;
+ 
+ 
+ var r = 1;
+ var a = 3;
+ var b = 1;
+ 
+ function CubeClass(x, y, z, r, shape, angle){
+ this.x = x;
+ this.y = y;
+ this.z = z;
+ this.r = r;
+ this.shape = null;
+ this.angle = angle;
+ }
+
+ init();
+ animate();
+ 
+
+ //init
+	
+	function init()
+	{
+	//create camera, scene, cube, renderer
+	camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 10000);
+	camera.position.z = 400;
+
+	scene = new THREE.Scene();
+	
+	var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 1, 1, 1 ).normalize();
+				scene.add( light );
+	
+	var geometry = new THREE.BoxGeometry(cubedim, cubedim, cubedim);
+	var material = new THREE.MeshLambertMaterial({color: 0xfff0f2});
+	
+
+		
+		for(i = 0; i<cubenum; i++)
+			{
+			cube = new THREE.Mesh(geometry, material); //from wikipedia the vars a, b and r are from the archimedies spiral
+			cube.position.x = (a+(b+i/3)*((r-a)/b+i/3))*Math.cos((r-a)/b+i/2); //I just convereted to polar, and mult by i so each cube 
+							  //(a+(b+i)*((r-a)/b+i))*Math.cos((r-a)/b+i);
+			cube.position.y = (a+(b+i/3)*((r-a)/b+i/3))*Math.sin((r-a)/b+i/2); //has it's own starting point. 
+			cube.position.z = 0;    //weird thing happens at multiples of 5
+			var object = new CubeClass(cube.position.x, cube.position.y, cube.position.z, (a+(b+i)*((r-a)/b+i)), cube, ((r-a)/b+i) );
+			cubes.push(object);     //well I use 19 down here
+			//console.log(object.x);	  //because I added more blocks?
+			
+			scene.add(cube);
+			
+			}
+	
+	
+	renderer = new THREE.WebGLRenderer();
+	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	document.body.appendChild(renderer.domElement);
+	
+	window.addEventListener('resize', onWindowResize, false);
+	}
+	
+ 
+ //on window resize
+ function onWindowResize()
+ {
+ camera.aspect(window.innerWidth / window.innerHeight);
+ camera.updateProjectionMatrix()
+ renderer.setSize(window.innerWidth, window.innerHeight);
+ }
+
+ //animate
+ function animate()
+ {
+ console.log(scene.children.length);
+ requestAnimationFrame(animate);
+ 
+ //theta += 0.01; // cool thing at /100
+
+/*
+ for(i = 0; i< scene.children.length; i++)
+	{
+	var object = scene.children[i];
+	
+	if(object instanceof THREE.Mesh) 
+		{
+
+			cubes[i-1].r -= 10;//ampinc//reduce each cube's amplitude [i-1] because we added a light to the scene before the cubes.
+			cubes[i-1].angle -= 0.1; //decrease each angle by same amount so on reset the decrement is still the same.
+			
+			///cubes[i-1].z -= 3;//push cubes slowly back in space too
+			
+			
+			//object.rotation.x += 0.05;
+			object.position.x = (cubes[i-1].r)*Math.cos(cubes[i-1].angle);//the original angle value + theta, and the ampl
+			object.position.y = (cubes[i-1].r)*Math.sin(cubes[i-1].angle); //between -250 and 250
+			//object.position.z = cubes[i-1].z;
+		if(cubes[i-1].r <=1)
+			{
+			cubes[i-1].r = (a+(b+cubenum-1)*((r-a)/b+cubenum-1)); 
+			cubes[i-1].angle = (r-a)/b+cubenum-1; //using cube num so that it goes back to the largest ampl and angle of the spiral
+			//cubes[i-1].z = 0;
+			}
+		//if a cube's ampl is close to 0, return it to it's init val and it's z val too
+		
+		}
+	}*/
+	
+	//if(delta >= 1.2){delta = 0}
+	
+	renderer.render(scene, camera);
+ 
+ }
+ 
+ 
+ 
+ </script>
+</body>
+
+</html>

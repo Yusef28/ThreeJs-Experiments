@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Spiral Practice 1</title>
+<meta charset="utf-8">
+<style>
+body{
+margin:0px;
+background-color:#000000;
+overflow:hidden;
+}
+</style>
+</head>
+
+<body>
+<script src="../build/three.min.js"></script>
+<script>
+
+var scene, camera, renderer, stats;
+var raycaster, cube, light;
+
+var cubenum = 100;
+var cubes = [];
+function CubeObject(x, y, z, r, a){
+
+this.x = x;
+this.y = y;
+this.z = z;
+this.r = r;
+this.a = a;
+
+}
+
+
+
+
+init();
+animate();
+
+function init(){
+
+camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
+camera.position.z = 1000;
+
+scene = new THREE.Scene();
+
+var geometry = new THREE.BoxGeometry( 20, 20, 20 );
+var material = new THREE.MeshLambertMaterial({color:0xff0044});
+
+for( i = 0; i< cubenum; i++ ){
+//i=0 is the furthest element for this spiral
+
+cube = new THREE.Mesh( geometry, material );
+cube.position.x = Math.pow(i,-1/2)*1000*Math.cos(10*i/cubenum*2)+500;
+cube.position.y = Math.pow(i,-1/2)*1000*Math.sin(10*i/cubenum*2)+300;//if the angle steps for each cube are too big it results in the star thing 
+cube.position.z = 0;    //because it draws the cubes too far apart to stay in any single curve, so there are multiple curves
+scene.add( cube );            //this seems independent of the amplitude  i/the num of cubes * 10 will work
+
+console.log(Math.pow(i,-1/2)*1000);
+cubeob = new CubeObject(cube.position.x, cube.position.y, cube.position.z, Math.pow(i,-1/2)*1000, 10*i/cubenum*2)
+cubes.push(cubeob);
+}								//changing the ampli to i*i gives 
+
+for( i = 0; i< cubenum; i++ ){
+
+cube = new THREE.Mesh( geometry, material );
+cube.position.x = Math.pow(i,-1/2)*1000*Math.cos(10*i/cubenum*2)+500;
+cube.position.y = Math.pow(i,-1/2)*1000*Math.sin(10*i/cubenum*2)-500;//if the angle steps for each cube are too big it results in the star thing 
+cube.position.z = 0;    //because it draws the cubes too far apart to stay in any single curve, so there are multiple curves
+scene.add( cube );            //this seems independent of the amplitude  i/the num of cubes * 10 will work
+
+cubeob = new CubeObject(cube.position.x, cube.position.y, cube.position.z, Math.pow(i,-1/2)*1000, 10*i/cubenum*2)
+cubes.push(cubeob);
+}								//changing the ampli to i*i gives 
+
+
+for( i = 0; i< cubenum; i++ ){
+
+cube = new THREE.Mesh( geometry, material );
+cube.position.x = Math.pow(i,1/2)*50*Math.cos(10*i/cubenum*2)-500;
+cube.position.y = Math.pow(i,1/2)*50*Math.sin(10*i/cubenum*2);//if the angle steps for each cube are too big it results in the star thing 
+cube.position.z = 0;    //because it draws the cubes too far apart to stay in any single curve, so there are multiple curves
+scene.add( cube );            //this seems independent of the amplitude  i/the num of cubes * 10 will work
+
+cubeob = new CubeObject(cube.position.x, cube.position.y, cube.position.z, Math.pow(i,-1/2)*50, 10*i/cubenum*2)
+cubes.push(cubeob);
+}			
+scene.add( cube );
+
+light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set( 1, 1, 1 ).normalize();
+scene.add( light );
+
+document.addEventListener('resize', onWindowResize, false);
+
+renderer = new THREE.WebGLRenderer();
+renderer.setPixelRatio( window.devicePixelRatio );
+renderer.setSize( window.innerWidth, window.innerHeight );
+document.body.appendChild( renderer.domElement );
+
+}
+
+function onWindowResize(){
+camera.aspect( window.innerWidth/ window.innerHeight );
+camera.updateProjectionMatrix();
+renderer.setSize( window.innerWidth, window.innerHeight );
+}
+
+function animate(){
+requestAnimationFrame( animate );
+
+for(i = 0; i<=scene.children.length; i++)
+{
+	var object = scene.children[i];
+	
+if(object instanceof THREE.Mesh)
+	{
+	if(i < cubenum)
+		{
+		object.rotation.x +=0.05;
+		cubes[i].r-=Math.pow(cubenum*100,-1/2)*100;
+		cubes[i].a+=2*10*(i+1)/(cubenum*1000); //mult by 100 on both these means scaling to a smaller value
+		//edit: set the outer mult of r to 100 and the mult of cubenum of a to 1000, so I switched them! It works pretty well
+		
+		//cubes[i].r-=Math.pow(i,-1/2);
+		//cubes[i].a+=+i/cubenum/100;
+		object.position.x = (cubes[i].r)*Math.cos(cubes[i].a)+500;
+		object.position.y = (cubes[i].r)*Math.sin(cubes[i].a)+300; 
+		
+		
+		if(cubes[i].r < 50) //if object position is close to center, reset it to outside 
+		{
+			cubes[i].r=Math.pow(1,-1/2)*1000; //reset the cubes r and a to teh outermost objects r and a
+			cubes[i].a=10*1/cubenum*2;
+			object.position.x = (cubes[i].r)*Math.cos(cubes[i].a)+500; //set the object to the corresponding cube
+			object.position.y = (cubes[i].r)*Math.sin(cubes[i].a)+300; 
+		}
+			
+		}
+	
+	if(i >= cubenum && i <= 2*cubenum)
+		{
+		object.rotation.z +=0.05;
+				object.rotation.x +=0.05;
+		cubes[i].r-=Math.pow(cubenum*100,-1/2)*100;
+		cubes[i].a+=2*10*(i-cubenum-1)/(cubenum*1000); //it's i-cubenume because these is are all past the first set
+		
+
+		object.position.x = (cubes[i].r)*Math.cos(cubes[i].a)+500;
+		object.position.y = (cubes[i].r)*Math.sin(cubes[i].a)-500; 
+		
+		
+		if(cubes[i].r < 50) //if object position is close to center, reset it to outside 
+		{
+			cubes[i].r=Math.pow(1,-1/2)*1000; //reset the cubes r and a to teh outermost objects r and a
+			cubes[i].a=10*1/cubenum*2;
+			object.position.x = (cubes[i].r)*Math.cos(cubes[i].a)+500; //set the object to the corresponding cube
+			object.position.y = (cubes[i].r)*Math.sin(cubes[i].a)-500; 
+		}
+		}
+	
+	if(i >= 2*cubenum && i <= 3*cubenum)
+		{
+		object.rotation.y +=0.05;
+		}
+	
+	}
+}
+renderer.render( scene, camera );
+}
+</script>
+</body>
+
+
+</html>

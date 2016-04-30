@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Yusef's Creative 1</title>
+
+
+<style>
+body{
+margin:0px;
+overflow:hidden;
+background-color:#000000;
+}
+</style>
+</head>
+
+<body>
+<script src="../build/three.min.js"></script>
+<script>
+var scene, camera, renderer;
+var raycaster, stats, cube, light;
+var geometry, material;
+
+function CubeObject(x, y, z, r, a, xplus, yplus, dir, sp)
+{
+this.x = x;
+this.y = y;
+this.z = z;
+this.r = r;
+this.a = a;
+this.xplus = xplus;
+this.yplus = yplus;
+this.dir = dir;
+this.sp = sp;
+}
+var cubes = [];
+var cubenum = 20;
+var cubesize = 20;
+var cubecolor = new THREE.Color("rgb(" + 255 + "," + 255 + "," + 255 + ")");
+var xpos = -350;
+var ypos = +100;
+var size = 150;
+var speed = 0.5;
+var direction = 1;
+var reds = 255;
+var greens = 25 * Math.round((10*Math.random()));
+var blues = 25 * Math.round((10*Math.random()));
+
+init();
+animate();
+
+function init(){
+
+	camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 10000);
+	camera.position.z = 400;
+	
+	scene = new THREE.Scene();
+	
+	light = new THREE.DirectionalLight(0xffffff, 1);
+	light.position.set( 1, 1, 1).normalize();
+	//scene.add( light ); later
+	
+	for(k=0;k<10;k++)
+	{
+		
+		cubenum = Math.round(40*Math.random());
+		xpos += 50;
+		ypos -=10;
+		size = Math.round(cubenum*8*Math.random());//cubenum*8
+		speed = Math.round(8*Math.random());
+		direction *= -1;
+		reds -= 20;//*Math.random();
+		//greens = 0;//*Math.random();
+		//blues -=20;//*Math.random()+200;
+		
+		cubecolor = new THREE.Color("rgb(" + reds + "," + greens + "," + blues + ")");
+		cubesize = cubenum/2//Math.round(50*Math.random());
+		geometry = new THREE.BoxGeometry(cubesize, cubesize, cubesize);
+		material = new THREE.MeshLambertMaterial({color: cubecolor });
+		
+		
+		for(i=0;i<=cubenum;i++)
+		{
+		
+			cube = new THREE.Mesh(geometry, material);
+			cube.position.x = size*Math.cos(2*Math.PI*(i/cubenum))+xpos;
+			cube.position.y = size*Math.sin(2*Math.PI*(i/cubenum))+ypos;
+			cube.position.z = 0;
+									//cubeob gets x,y, z, radius, angle, xplus, and y plus //and dir //and sp
+			cubeob = new CubeObject(cube.position.x, cube.position.y, cube.position.z, size, 2*Math.PI*(i/cubenum), xpos, ypos, direction, speed);
+			cubes.push(cubeob);
+			
+			scene.add(cube);
+		}
+	}
+	
+	/*geometry = new THREE.BoxGeometry(10, 10, 10);
+	material = new THREE.MeshLambertMaterial({color:0x440099});
+	cubenum = 20;
+	for(i=0;i<=cubenum;i++)
+	{
+	
+	cube = new THREE.Mesh(geometry, material);
+	cube.position.x = 50*Math.cos(2*Math.PI*(i/cubenum))-300;
+	cube.position.y = 50*Math.sin(2*Math.PI*(i/cubenum))+200;
+	cube.position.z = 0;
+							//cubeob gets x,y, z, radius, angle, xplus, and y plus //and dir //sp
+	cubeob = new CubeObject(cube.position.x, cube.position.y, cube.position.z, 50, 2*Math.PI*(i/cubenum), 100, 200, -1, 1);
+	cubes.push(cubeob);
+	
+	scene.add(cube);
+	}*/
+
+	
+	
+	
+	renderer = new THREE.WebGLRenderer();
+	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	
+	document.body.appendChild( renderer.domElement);
+	
+	document.addEventListener('resize', onWindowResize, false);
+	scene.add( light );
+}
+
+function onWindowResize(){
+camera.aspect(window.innerWidth/window.innerHeight);
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate(){
+
+requestAnimationFrame( animate );
+
+for(i=0 ; i<scene.children.length ; i++)
+	{
+		var object = scene.children[i];
+		
+			if(scene.children[i] instanceof THREE.Mesh)
+				{
+					object.rotation.x += 0.01;
+					cubes[i].a += 2*Math.PI*(1/(cubenum*12)) * cubes[i].dir  * cubes[i].sp;
+					
+					object.position.x = cubes[i].r*Math.cos(cubes[i].a)+cubes[i].xplus;
+					object.position.y = cubes[i].r*Math.sin(cubes[i].a)+cubes[i].yplus;
+				}
+	}
+	
+renderer.render(scene, camera);
+
+}
+</script>
+
+</body>
+
+
+
+
+
+</html>

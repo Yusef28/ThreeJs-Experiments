@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Cube Practice 4</title>
+<meta charset="utf-8">
+<style>
+body{
+background-color:#000000;
+overflow:hidden;
+margin:0px;
+}
+</style>
+</head>
+
+<body>
+ <script src="../build/three.min.js"></script>
+ <script>
+ 
+ //boot vars
+ var camera, scene, renderer;
+ var raycaster, cube, stats;
+ var cubes = [];
+ var cubenum = 50;
+ var cubedim = 30;
+ var theta = 0.01;
+ var delta = 0.01;
+ var initampl = 450;
+ var ampinc = 0;
+ 
+ function CubeClass(x, y, z, r, shape, angle){
+ this.x = x;
+ this.y = y;
+ this.z = z;
+ this.r = r;
+ this.shape = null;
+ this.angle = angle;
+ }
+
+ init();
+ animate();
+ 
+
+ //init
+	
+	function init()
+	{
+	//create camera, scene, cube, renderer
+	camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 1000);
+	camera.position.z = 400;
+	
+	scene = new THREE.Scene();
+	
+	var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 1, 1, 1 ).normalize();
+				scene.add( light );
+	
+	var geometry = new THREE.BoxGeometry(cubedim, cubedim, cubedim);
+	var material = new THREE.MeshLambertMaterial({color: Math.random() * 0xffffff});
+	
+
+		
+		for(i = 0; i<cubenum; i++)
+			{
+			cube = new THREE.Mesh(geometry, material);
+			cube.position.x = (initampl-i*15)*Math.cos(2*Math.PI*(i/cubenum));
+			cube.position.y = (initampl-i*15)*Math.sin(2*Math.PI*(i/cubenum));
+			
+			var object = new CubeClass(cube.position.x, cube.position.y, cube.position.z, initampl-i*15, cube, 2*Math.PI*(i/cubenum) );
+			cubes.push(object);
+			//console.log(object.x);
+			console.log(cubes[i].r);
+			scene.add(cube);
+			//theta+=0.5;
+			}
+	
+	
+	renderer = new THREE.WebGLRenderer();
+	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	document.body.appendChild(renderer.domElement);
+	
+	window.addEventListener('resize', onWindowResize, false);
+	}
+	
+function spiral(i)//takes in cubes array and uses it to set values of the cubes
+{
+ console.log(cubes[5].r);
+}
+ 
+ //on window resize
+ function onWindowResize()
+ {
+ camera.aspect(window.innerWidth / window.innerHeight);
+ camera.updateProjectionMatrix()
+ renderer.setSize(window.innerWidth, window.innerHeight);
+ }
+
+ //animate
+ function animate()
+ {
+ console.log(scene.children.length);
+ requestAnimationFrame(animate);
+ 
+ theta += 0.05; //theta += 0.5;
+ //delta += 0.003;
+ ampinc = 0.15 ;//450*Math.sin(delta);//250*Math.sin(delta);
+
+ for(i = 0; i< scene.children.length; i++)
+	{
+	var object = scene.children[i];
+	
+	if(object instanceof THREE.Mesh) 
+		{
+		
+		//spiral(i);
+			cubes[i-1].r -= ampinc//reduce each cube's amplitude [i-1] because we added a light to the scene before the cubes.
+			//console.log(cubes[i-1].r);
+			object.rotation.x += 0.05;
+			object.position.x = (cubes[i-1].r)*Math.cos(cubes[i-1].angle+theta);//the original angle value + theta, and the ampl
+			object.position.y = (cubes[i-1].r)*Math.sin(cubes[i-1].angle+theta); //between -250 and 250
+			
+		if(cubes[i-1].r <=0.1){cubes[i-1].r = initampl;}//if a cubes ampl is close to 0, return it to it's init val
+
+		}
+	}
+	
+	//if(delta >= 1.2){delta = 0}
+	
+	renderer.render(scene, camera);
+ 
+ }
+ 
+ 
+ 
+ </script>
+</body>
+
+</html>

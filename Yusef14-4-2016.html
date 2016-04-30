@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Yusef 12-4-2016</title>
+
+<style>
+body
+{
+margin:0px;
+overflow:hidden;
+background-color:#000000;
+}
+</style>
+
+</head>
+
+<body>
+<script src="../build/three.min.js"></script>
+<script>
+var scene, camera, renderer, light;
+var stats, raycaster, cube, geometry, material;
+var theta = 0.01;
+var size = 300;
+init();
+animate();
+
+function init()
+{
+scene = new THREE.Scene();
+camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 10000);
+camera.position.z = 700;
+camera.position.x = 400;
+
+
+//geometry = new THREE.BoxGeometry(40, 40, 40);
+
+
+	
+/*
+var rectLength = size, rectWidth = size;
+
+var shape = new THREE.Shape();
+	shape.moveTo( -rectLength/2, 0 );
+	shape.lineTo( rectLength/2, 0 );
+	shape.lineTo( rectLength/2, -rectWidth/2 );
+	shape.lineTo( -rectLength/2, -rectWidth/2 );
+	shape.lineTo( -rectLength/2, rectWidth/2 );
+	shape.lineTo( rectLength/2, rectWidth/2 );
+	shape.lineTo( rectLength/2, 0 );
+
+
+
+
+
+var geometry = shape.createPointsGeometry( 50 );
+var material = new THREE.LineBasicMaterial( { color : 0xff00ff } );
+
+for(i=0;i<=20;i++)
+{
+cube = new THREE.Line( geometry, material );
+cube.rotation.z = 2*Math.PI*i/20;
+scene.add(cube);
+}
+
+var material = new THREE.LineBasicMaterial( { color : 0xff0088 } );
+for(i=0;i<=5;i++)
+{
+cube = new THREE.Line( geometry, material );
+cube.rotation.z = 2*Math.PI*i/10;
+scene.add(cube);
+}
+
+
+var material = new THREE.LineBasicMaterial( { color : 0x550088 } );
+
+cube = new THREE.Line( geometry, material );
+cube.rotation.z = 2*Math.PI*i/10;
+scene.add(cube);
+*/
+material = new THREE.MeshLambertMaterial({color:0xcdcdcd},1);
+geometry = new THREE.BoxGeometry(40, 40, 40);
+
+for(n=0;n<200;n++){
+
+			cube = new THREE.Mesh(geometry, material);
+			cube.position.x = 1000*Math.random() - 500;
+			cube.position.y = 1400*Math.random() - 700;
+			cube.position.z = 1200*Math.random() - 600;
+			//cube.scale.x = cube.scale.y = cube.scale.z = 10*Math.random();
+			scene.add(cube);
+}
+/*
+geometry = new THREE.BoxGeometry(100, 100, 100);
+
+for(n=0;n<50;n++){
+		for(i=0;i<50;i++){
+
+			cube = new THREE.Mesh(geometry, material);
+			cube.position.x = 100*n - 50*50/2;
+			cube.position.z = 100*i-50*50/2;
+			cube.position.y = Math.random()*80;
+			scene.add(cube);
+		}
+	}*/
+
+light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(1, 1, 1).normalize();
+scene.add(light);
+
+
+
+renderer = new THREE.WebGLRenderer();
+renderer.setClearColor( 0xababab );
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+document.addEventListener('resize', onWindowResize, false);
+}
+
+function onWindowResize(){
+camera.aspect(window.innerWidth/window.innerHeight );
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+var ctheta = 0.01;
+var cradius = 600;
+function animate(){
+requestAnimationFrame(animate);
+theta +=0.001;
+ctheta += 0.1;
+	
+
+for(i=0;i<=scene.children.length;i++)
+	if(scene.children[i] instanceof THREE.Line)
+	{
+		var object = scene.children[i];
+		//object.rotation.x = 4*Math.sin(8*Math.PI*theta+i*0.05);
+		//object.rotation.y = 4*Math.sin(8*Math.PI*theta+i*0.05);
+		object.rotation.z = 4*Math.sin(2*Math.PI*theta+i/2*0.5);
+	}
+	else if(scene.children[i] instanceof THREE.Mesh)
+	{
+		var object = scene.children[i];
+		//object.rotation.x = 4*Math.sin(8*Math.PI*theta+i*0.05);
+		//object.rotation.y = 4*Math.sin(8*Math.PI*theta+i*0.05);
+		object.position.y += 0.5;
+		if(object.position.y >= 600)object.position.y = -800;
+	}
+	
+	//group.position.x = 800*Math.sin(2*Math.PI*theta);
+	//group.rotation.z = 20*Math.sin(4*Math.PI*theta);
+	//camera.position.x = cradius * Math.sin( THREE.Math.degToRad( ctheta ) );
+	//camera.position.y = cradius * Math.sin( THREE.Math.degToRad( ctheta ) );
+	//camera.position.z = cradius * Math.cos( THREE.Math.degToRad( ctheta ) );
+	camera.lookAt( scene.position );
+	
+renderer.render(scene, camera);
+}
+
+
+</script>
+</body>
+
+</html>

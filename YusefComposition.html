@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title> Yusef Composition 1</title>
+
+<style>
+body{
+margin:0px;
+overflow:hidden;
+background-color:#000000;
+}
+</style>
+</head>
+<body>
+<script src="../build/three.min.js"></script>
+<script>
+
+var scene, camera, renderer, light;
+var raycaster, stats, cube;
+var geometry, material;
+
+var theta = 0.001;
+init();
+animate();
+
+function init()
+{
+camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 10000);
+camera.position.z = 400;
+
+scene = new THREE.Scene();
+
+light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(1, 1, 1).normalize();
+scene.add( light );
+
+light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(-400, 800, 100).normalize();
+scene.add( light );
+
+light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(-400, 800, -1100).normalize();
+scene.add( light );
+
+geometry = new THREE.BoxGeometry(20, 20, 20);
+material = new THREE.MeshLambertMaterial({color:0x990099});
+cube = new THREE.Mesh(geometry, material);
+scene.add( cube );
+
+geometry = new THREE.BoxGeometry(200, 200, 200);
+cube = new THREE.Mesh(geometry, material);
+cube.position.x = 200;
+cube.position.y = -100;
+cube.position.z = 0;
+scene.add( cube );
+
+geometry = new THREE.BoxGeometry(50, 50, 50);
+cube = new THREE.Mesh(geometry, material);
+cube.position.x = 200;
+cube.position.y = 100;
+cube.position.z = 0;
+scene.add( cube );
+
+geometry = new THREE.BoxGeometry(500, 500, 500);
+cube = new THREE.Mesh(geometry, material);
+cube.position.x = 0;
+cube.position.y = 0;
+cube.position.z = -500;
+scene.add( cube );
+
+geometry = new THREE.BoxGeometry(100, 100, 100);
+cube = new THREE.Mesh(geometry, material);
+cube.position.x = -400;
+cube.position.y = 200;
+cube.position.z = -200;
+scene.add( cube );
+
+geometry = new THREE.BoxGeometry(150, 150, 150);
+cube = new THREE.Mesh(geometry, material);
+cube.position.x = -100;
+cube.position.y = 100;
+cube.position.z = -500;
+scene.add( cube );
+
+renderer = new THREE.WebGLRenderer( {alpha:true});
+renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setPixelRatio( window.devicePixelRatio );
+renderer.setClearColor( 0xffffff );
+document.body.appendChild( renderer.domElement );
+
+document.addEventListener('resize', onWindowResize, false);
+}
+
+function onWindowResize(){
+camera.aspect(window.innerWidth/window.innerHeight );
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate()
+{
+requestAnimationFrame(animate);
+renderer.setClearColor( 0xffffff );
+theta += 0.01
+camera.position.z = 1500*Math.sin(theta) -200
+camera.position.x = 1500*Math.cos(theta)
+//light.rotation.x = 400*Math.cos(theta*8)
+camera.lookAt(scene.position);
+renderer.render(scene, camera);
+}
+</script>
+
+</body>
+</html>

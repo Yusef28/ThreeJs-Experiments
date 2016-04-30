@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title> Yusef Composition 1</title>
+
+<style>
+body{
+margin:0px;
+overflow:hidden;
+background-color:#000000;
+}
+#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+				z-index: 100;
+				font-size:50px;
+				text-align:center;
+			}
+</style>
+</head>
+<body>
+<div id="info"><a href="http://threejs.org" target="_blank">three.js</a> - cameras<br/>
+		<b>O</b> orthographic <b>P</b> perspective
+		</div>
+<script src="../build/three.min.js"></script>
+<script>
+
+var scene, camera, renderer, light, sceneCube;
+var raycaster, stats, cube;
+var geometry, material;
+var blocknum = 0;
+
+function CubeObject(x, y, z, r, a, xplus, yplus, dir, sp)
+{
+this.x = x;
+this.y = y;
+this.z = z;
+this.r = r;
+this.a = a;
+this.xplus = xplus;
+this.yplus = yplus;
+this.dir = dir;
+this.sp = sp;
+}
+var cubes = [];
+var cubenum = 20;
+var cubesize = 20;
+var cubecolor = 0xffffff*Math.random();
+var xpos = -50;
+var ypos = +100;
+var ringsize = 300;
+var speed = 0.1;
+var direction = 1;
+var mouseX = 0;
+var mouseY = 0;
+var windowHalfX = window.innerWidth / 2;
+var windowHalfY = window.innerHeight / 2;
+
+var theta = 0.1;
+init();
+animate();
+
+function init()
+{
+camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 100000);
+camera.position.z = 3200;
+cameraCube = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 100000 );
+
+
+scene = new THREE.Scene();
+sceneCube = new THREE.Scene();
+
+
+var urlprefix = "textures/cube/Park3Med/";
+var urls = [urlprefix + 'px.jpg', urlprefix + 'nx.jpg', urlprefix + 'py.jpg', 
+urlprefix + 'ny.jpg', urlprefix + 'pz.jpg', urlprefix + 'nz.jpg'];
+
+
+
+
+var textureCube = THREE.ImageUtils.loadTextureCube( urls );
+var material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube } );
+var geometry = new THREE.SphereBufferGeometry( 100, 32, 16 );
+
+//var size = 20;
+for(i=0; i<=40; i++){
+var size = 500
+cube = new THREE.Mesh(geometry, material);
+			cube.position.x = size*Math.cos(2*Math.PI*(i/cubenum))+size*2*Math.cos(2*5*Math.PI*(i/cubenum)-500);//using a multiple of PI ensures that the paht will be "closed"
+			cube.position.y = size*Math.sin(2*Math.PI*(i/cubenum))+size*2*Math.sin(2*5*Math.PI*(i/cubenum)-500);//meaning revolution endpoints and start points will be connected.
+			cube.position.z = size*Math.sin(2*Math.PI*(i/cubenum*2)-100);									//otherwise you'd get the whole thing moveing circularly as blocks are replaced
+														
+														//I added z, mostly just trying to get the effect of the cubes
+														//not hitting each other as they pass by, but something else cool seems to happen as well.
+														//each cube keeps it's z the same (so far) while the x and y change, so different branches
+														//of the design appear to be closer at different times, and further away branches appear
+														//more central because of perspective.
+														//I really want to make an infinity curve...
+														
+									//cubeob gets x,y, z, radius, angle, xplus, and y plus //and dir //and sp
+			cubeob = new CubeObject(cube.position.x, cube.position.y, cube.position.z, size, 2*Math.PI*(i/cubenum), -500, -500, direction, speed, 2*5*Math.PI*(i/cubenum) );
+			cubes.push(cubeob);
+			
+			scene.add(cube);
+	
+
+}
+
+
+var shader = THREE.ShaderLib["cube"];
+//var uniforms = THREE.UniformsUtils.clone( shader.uniforms );
+shader.uniforms['tCube'].value= textureCube;   // textureCube has been init before
+var material = new THREE.ShaderMaterial({ //MeshShaderMaterial depreciated
+	
+	fragmentShader: shader.fragmentShader,
+	vertexShader: shader.vertexShader,
+	uniforms: shader.uniforms,
+	depthWrite: false,
+	side: THREE.BackSide
+});
+
+var mesh = new THREE.Mesh( new THREE.BoxGeometry( 100, 100, 100 ), material );
+sceneCube.add( mesh );
+
+
+renderer = new THREE.WebGLRenderer( {alpha:true});
+renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setPixelRatio( window.devicePixelRatio );
+renderer.setClearColor( 0xffffff );
+renderer.autoClear = false;
+
+
+container = document.createElement( 'div' );
+				document.body.appendChild( container );
+container.appendChild( renderer.domElement );
+
+
+document.addEventListener('resize', onWindowResize, false);
+document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+
+}
+
+function onWindowResize(){
+
+windowHalfX = window.innerWidth / 2,
+windowHalfY = window.innerHeight / 2,
+				
+				
+camera.aspect(window.innerWidth/window.innerHeight );
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+cameraCube.aspect = window.innerWidth / window.innerHeight;
+cameraCube.updateProjectionMatrix();
+}
+
+function onDocumentMouseMove( event ) {
+
+				mouseX = ( event.clientX - windowHalfX ) * 10;
+				mouseY = ( event.clientY - windowHalfY ) * 10;
+
+			}
+			
+function animate()
+{
+requestAnimationFrame(animate);
+renderer.setClearColor( 0xffffff );
+
+camera.position.x += 100*Math.cos(theta*10);
+//camera.position.y += theta;
+
+for(i=0 ; i<scene.children.length ; i++)
+	{
+		var object = scene.children[i];
+		
+			if(scene.children[i] instanceof THREE.Mesh)
+				{
+					object.rotation.x += 0.01;
+					cubes[i].a += 2*Math.PI*(1/(cubenum*12)) * cubes[i].dir  * cubes[i].sp;
+					cubes[i].a2 += 2*5*Math.PI*(1/(cubenum*12)) * cubes[i].dir  * cubes[i].sp;
+					//object.position.x = 100*2*Math.cos(2*Math.PI*(i/cubenum))+100*2*Math.cos(2*3*Math.PI*(i/cubenum));
+					//object.position.y = 100*2*Math.sin(2*Math.PI*(i/cubenum))+100*2*Math.sin(2*3*Math.PI*(i/cubenum));
+					object.position.x = cubes[i].r*Math.cos(cubes[i].a)+cubes[i].r*Math.cos(cubes[i].a2)+cubes[i].xplus;
+					object.position.y = cubes[i].r*Math.sin(cubes[i].a)+cubes[i].r*Math.sin(cubes[i].a2)+cubes[i].yplus;
+					object.position.z = 100*2*Math.sin(2*Math.PI*(i/cubenum*2));
+				}
+	}
+
+/*
+theta += 0.01
+camera.position.z = Math.sin(theta) *100;
+camera.position.x = Math.cos(theta) *200;
+*/
+
+camera.lookAt(scene.position);
+cameraCube.rotation.copy( camera.rotation );
+renderer.render( sceneCube, cameraCube );
+renderer.render( scene, camera );
+	
+}
+</script>
+
+</body>
+</html>
