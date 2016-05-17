@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js canvas - particles - random</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			a {
+				color:#0078ff;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="../build/three.min.js"></script>
+
+		<script src="js/renderers/Projector.js"></script>
+		<script src="js/renderers/CanvasRenderer.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+
+		<script>
+
+			var container, stats, options, controls;
+			var camera, scene, renderer, group, particle, cube;
+			var mouseX = 0, mouseY = 0;
+			var theta = 0.01;
+			var delta = 0.01;
+			var size = 100;
+			var size2 = size*2;
+			var addTheta = 0.1;
+			var addRotX = 0;
+			var addRotY = 0;
+			var addPosX = 0;
+			var groupSize = 0;
+			var cubes = [];
+			var cubes2 = [];
+			var gOG = [];
+			var ran = []
+			
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				options = document.createElement( 'div' );
+				options.style.position = 'absolute';
+				options.style.color = 'white';
+				options.style.top = '30px';
+				options.style.width = '100%';
+				options.style.textAlign = 'center';
+
+				options.innerHTML = 'Points: <input type="button" onclick=";" value="+" />\
+					<input type="button" onclick="" value="-" />\
+					<input type="button" onclick="" value="Export" /><br />\
+					<label>Theta Coef<label>\
+					<input type="range" id="tension" oninput="showVal(this.value)" onchange=""\
+					min=0 max=10 step=0.001 value=0.5 />\
+					<label>Delta Coef</label>\
+					<input type="range" id="tension" oninput="showPosX(this.value)" onchange="showVal(this.value)"\
+					min=0 max=100 step=1 value=0.5 />\
+					<label>Speed</label>\
+					<input type="range" id="tension" oninput="showRotX(this.value)" onchange="showVal(this.value)"\
+					min=0 max=10 step=0.01 value=0.5 />\
+					<label>Spread</label>\
+					<input type="range" id="tension" oninput="showRotY(this.value)" onchange="showVal(this.value)"\
+					min=0 max=10 step=0.01 value=0.5 />\
+					<input type="checkbox" id="" checked /> option<br />\
+					<input type="checkbox" id="" checked /> option<br />';
+
+				container.appendChild( options );
+				
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
+				camera.position.z = 1000;
+
+				scene = new THREE.Scene();
+
+				
+				
+				var PI2 = Math.PI * 2;
+
+				group = new THREE.Group();
+				scene.add( group );
+				
+				var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+directionalLight.position.set( 100,100,100 );
+scene.add( directionalLight );
+var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+directionalLight.position.set( 100,100,-2100 );
+scene.add( directionalLight );
+
+var light = new THREE.PointLight( 0xffffff, 1, 100 );
+light.position.set( 50, 50, 50 );
+scene.add( light );
+
+var bluePoint = new THREE.PointLight(0x0033ff, 3, 200);
+bluePoint.position.set( 400, 5, 70 );
+scene.add(bluePoint);
+scene.add(new THREE.PointLightHelper(bluePoint, 3));
+
+var greenPoint = new THREE.PointLight(0x33ff00, 3, 400);
+greenPoint.position.set( -170, 5, 70 );
+scene.add(greenPoint);
+scene.add(new THREE.PointLightHelper(greenPoint, 3));
+
+var bluePoint = new THREE.PointLight(0xff00ff, 3, 500);
+bluePoint.position.set( 100, 300, 70 );
+scene.add(bluePoint);
+scene.add(new THREE.PointLightHelper(bluePoint, 3));
+
+var greenPoint = new THREE.PointLight(0xff0000, 3, 400);
+greenPoint.position.set( 100, 150 , 70 );
+scene.add(greenPoint);
+scene.add(new THREE.PointLightHelper(greenPoint, 3));
+
+var spotLight = new THREE.SpotLight(0xffffff, 1, 20, 200, 10);
+spotLight.position.set( 0, 150, -1000 );
+  
+var spotTarget = new THREE.Object3D();
+spotTarget.position.set(0, 0, 0);
+spotLight.target = spotTarget;
+  
+scene.add(spotLight);
+scene.add(new THREE.PointLightHelper(spotLight, 1));
+
+var spotLight = new THREE.SpotLight(0xffffff, 1, 20, 200, 1);
+spotLight.position.set( 0, 150, 1000 );
+  
+var spotTarget = new THREE.Object3D();
+spotTarget.position.set(50, 50, 50);
+spotLight.target = spotTarget;
+  
+scene.add(spotLight);
+scene.add(new THREE.PointLightHelper(spotLight, 1));
+				var geometry = new THREE.BoxGeometry( 20,20,20 );
+				var material = new THREE.MeshPhongMaterial( 
+					{ color: 0x0000ff, overdraw: true});
+						
+						
+				for(k=0;k<20;k++){
+					for(i=0;i<20;i++)
+					{
+					
+					cube = new THREE.Mesh( geometry, material );
+					cube.position.x = 20 * k + 40 - 5*20;
+					cube.position.y = 20 * i + 40 - 5*20;
+					
+					
+					scene.add( cube );
+					cubes.push(cube);	
+					ran.push(Math.random());
+					}
+					}
+					
+					for(k=0;k<10;k++){
+					var group = [];
+					var count = Math.random*20;
+					
+					for(i=0;i<count;i++)
+					{
+					
+					cube = new THREE.Mesh( geometry, material );
+					
+					cube.position.x = 200 * Math.random();
+					cube.position.y = 200 * Math.random();
+					cube.position.z = //500 * Math.random() * Math.sin(i)-1000;
+					
+					
+					scene.add( cube );
+					cubes2.push(cube);	
+					//ran.push(Math.random());
+					}
+					}
+					
+					
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
+				controls.enableDamping = true;
+				controls.dampingFactor = 0.55;
+				controls.enableZoom = true;
+				
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+			var p = document.getElementById('tension')
+			p.addEventListener('input', showVal)
+			
+			function showVal(val) {
+			addTheta += val;
+			console.log(addTheta);
+			}
+			function showRotX(val) {
+			addRotX = val;
+			}
+			function showRotY(val) {
+			addRotY = val;
+			}
+			function showPosX(val) {
+			addPosX = val;
+			}
+			
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+
+			function animate() {
+			theta += 0.1;
+			delta += 0.1;
+			delta2 = delta;//Math.sin(delta)*10;
+			if(theta > Math.PI*2){
+				theta = 0;}
+			
+			requestAnimationFrame( animate );
+			var count = 0;
+			for(k=0;k<20;k++){
+				for(i=0;i<20;i++){
+				
+				//the long z position thing modulates based on the row and column of the cube(with the phase offets)
+				//, and is between 0 and PI not 2 PI so phases go from 0 to 1 then back to 0 and thats it
+				//oh and it's multipling the two functions together which works like using pow(2)
+					cubes[count].position.z = 
+					10*Math.sin(theta + Math.sin(k/20*Math.PI)) //basic
+					*10*Math.sin(theta + Math.sin(i/20*Math.PI));
+					
+					cubes[count].position.x +=
+					Math.cos(k/20*Math.PI)*5*Math.cos(theta - Math.PI/2) //basic
+					*Math.sin(i/20*Math.PI)*5*Math.sin(theta - Math.PI/2);//had to use alternating sin/cos so the mult of two halves
+								//will never be - * -
+								
+					cubes[count].position.y +=
+					Math.sin(k/20*Math.PI)*5*Math.sin(theta - Math.PI/2) //basic
+					*Math.cos(i/20*Math.PI)*5*Math.cos(theta - Math.PI/2);
+					//what I wanted to make was a bubble. I still didn't get there 
+					//although if you zoom in it kinda looks like one ... from the front 
+					///lol
+					
+					/*
+					cubes[count].position.y = 
+					Math.cos(k/20*Math.PI*2)*10*Math.cos(theta ) //basic
+					*Math.cos(i/20*Math.PI*2)*50*Math.cos(theta );
+					*/
+					//2*Math.pow(Math.max(0.0, Math.abs(k/20*Math.PI-1)* 2.0-1.0), 0.5)*Math.sin(theta + Math.sin(k/20*Math.PI)) 
+					//*2*Math.pow(Math.max(0.0, Math.abs(i/20*Math.PI+6)* 2.0-1.0), 0.5)*Math.sin(theta + Math.sin(i/20*Math.PI));
+					
+					
+					//10*Math.sin(theta + Math.sin(k/20*Math.PI)) //basic
+					
+					//10*Math.sin(theta + Math.sin(i/20*Math.PI));
+
+					//10*Math.exp(-k/20*Math.PI)*Math.sin(theta + Math.sin(k/20*3*Math.PI)) 
+					//*10*Math.exp(-i/20*Math.PI)*Math.sin(theta + Math.sin(i/20*3*Math.PI));
+					
+					//now I will add more to the z...
+					//cubes[count].position.y = 100*Math.sin(theta);
+					//cubes[count].position.x	-= 10*Math.sin(theta + Math.sin(count*Math.PI))
+
+					
+					//cubes[count].scale.x = 1*Math.sin(theta + ran[count]);//Math.sin(i/20*Math.PI)) 
+					//cubes[count].scale.y = 1*Math.sin(theta + ran[count]);//Math.sin(i/20*Math.PI)) 
+					//cubes[count].scale.z = 1*Math.sin(theta + ran[count]);//Math.sin(i/20*Math.PI)) 
+					
+					
+					count++;
+					}
+				}
+
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				controls.update(); // required if controls.enableDamping = true, or if controls.autoRotate = true
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>

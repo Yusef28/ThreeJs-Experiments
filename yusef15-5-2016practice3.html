@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js canvas - particles - random</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			a {
+				color:#0078ff;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="../build/three.min.js"></script>
+
+		<script src="js/renderers/Projector.js"></script>
+		<script src="js/renderers/CanvasRenderer.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+
+		<script>
+
+			var container, stats, options, controls;
+			var camera, scene, renderer, group, particle, cube;
+			var mouseX = 0, mouseY = 0;
+			var theta = 0.01;
+			var delta = 0.01;
+			var size = 100;
+			var size2 = size*2;
+			var addTheta = 0.1;
+			var addRotX = 0;
+			var addRotY = 0;
+			var addPosX = 0;
+			var groupSize = 0;
+			var cubes = [];
+			var cubes2 = [];
+			var cubes3 = [];
+			var cubes4 = [];
+			var cubes5 = [];
+			var cubes6 = [];
+			var cubes7 = [];
+			var cubes8 = [];
+			var cubes2 = [];
+			var count2 = 0;
+			
+			var GG = [];//[cubes, cubes2, cubes3, cubes4, cubes5, cubes6, cubes7, cubes8];
+			
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+				
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
+				camera.position.z = 1000;
+
+				scene = new THREE.Scene();
+
+				
+				
+				var PI2 = Math.PI * 2;
+
+				group = new THREE.Group();
+				scene.add( group );
+				
+				var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+directionalLight.position.set( 100,100,100 );
+scene.add( directionalLight );
+var light = new THREE.PointLight( 0xffffff, 1, 100 );
+light.position.set( 50, 50, 50 );
+scene.add( light );
+var light = new THREE.AmbientLight( 0x404040 ); // soft white light
+scene.add( light );
+
+				var geometry = new THREE.BoxGeometry( 20,20,20 );
+				var material = new THREE.MeshPhongMaterial( 
+					{ color: 0x0000ff, overdraw: true});
+						
+						
+				//for(j=0;j<8;j++){
+					//cubegroup.push(var cubes = [])
+				
+				
+				
+				for(k=1;k<=10;k++){
+					var count = k*4;
+					var cubes = [];
+					var material = new THREE.MeshPhongMaterial( 
+					{ color: 0x00ff00 + k*20, overdraw: true});
+					for(i=0 ; i<count ; i++)
+					{
+					
+					cube = new THREE.Mesh( geometry, material );
+					cube.position.x = k*50*Math.cos(Math.PI*i/count);
+					cube.position.y = k*50*Math.sin(Math.PI*i/count);
+					
+					
+					scene.add( cube );
+					cubes.push(cube);
+					count2++;
+					
+					}
+					GG.push(cubes);	
+					}
+					
+					
+					
+
+				renderer = new THREE.CanvasRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
+				controls.enableDamping = true;
+				controls.dampingFactor = 0.55;
+				controls.enableZoom = true;
+				
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+			
+			
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+
+			function animate() {
+			theta += 0.1;
+			delta += 0.01;
+			delta2 = delta;//Math.sin(delta)*10;
+			
+			requestAnimationFrame( animate );
+			
+			var count3 = 0;
+			for(k=0;k<GG.length;k++){
+				var count = k*4;
+				
+				for(i=0;i<GG[k].length;i++)
+				
+				{
+				GG[k][i].position.x = k*50*Math.cos(Math.PI*i/count + theta*count/10);
+				GG[k][i].position.y = k*50*Math.sin(Math.PI*i/count + theta*count/10);
+				
+				///GG[k][i].position.z = 50*Math.sin(theta + Math.PI*2*count2/count3);
+				}
+				count3++
+			
+			
+			
+			}
+
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				controls.update(); // required if controls.enableDamping = true, or if controls.autoRotate = true
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>

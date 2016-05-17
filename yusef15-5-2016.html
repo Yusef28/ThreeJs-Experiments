@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js canvas - particles - random</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			a {
+				color:#0078ff;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="../build/three.min.js"></script>
+
+		<script src="js/renderers/Projector.js"></script>
+		<script src="js/renderers/CanvasRenderer.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+
+		<script>
+
+			var container, stats, options, controls;
+			var camera, scene, renderer, group, particle, cube;
+			var mouseX = 0, mouseY = 0;
+			var theta = 0.01;
+			var delta = 0.01;
+			var size = 20;
+			var size2 = size*2;
+			var addTheta = 0.1;
+			var addRotX = 0;
+			var addRotY = 0;
+			var addPosX = 0;
+			var groupSize = 0;
+			var cubes = [];
+			var cubes2 = [];
+			var gOG = [];
+			
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				options = document.createElement( 'div' );
+				options.style.position = 'absolute';
+				options.style.color = 'white';
+				options.style.top = '30px';
+				options.style.width = '100%';
+				options.style.textAlign = 'center';
+
+				options.innerHTML = 'Points: <input type="button" onclick=";" value="+" />\
+					<input type="button" onclick="" value="-" />\
+					<input type="button" onclick="" value="Export" /><br />\
+					<label>Theta Coef<label>\
+					<input type="range" id="tension" oninput="showVal(this.value)" onchange=""\
+					min=0 max=10 step=0.001 value=0.5 />\
+					<label>Delta Coef</label>\
+					<input type="range" id="tension" oninput="showPosX(this.value)" onchange="showVal(this.value)"\
+					min=0 max=100 step=1 value=0.5 />\
+					<label>Speed</label>\
+					<input type="range" id="tension" oninput="showRotX(this.value)" onchange="showVal(this.value)"\
+					min=0 max=10 step=0.01 value=0.5 />\
+					<label>Spread</label>\
+					<input type="range" id="tension" oninput="showRotY(this.value)" onchange="showVal(this.value)"\
+					min=0 max=10 step=0.01 value=0.5 />\
+					<input type="checkbox" id="" checked /> option<br />\
+					<input type="checkbox" id="" checked /> option<br />';
+
+				container.appendChild( options );
+				
+				camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 3000 );
+				camera.position.z = 1000;
+
+				scene = new THREE.Scene();
+
+				
+				
+				var PI2 = Math.PI * 2;
+
+				group = new THREE.Group();
+				scene.add( group );
+				
+				var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+directionalLight.position.set( 100,100,100 );
+scene.add( directionalLight );
+var light = new THREE.PointLight( 0xffffff, 1, 100 );
+light.position.set( 50, 50, 50 );
+scene.add( light );
+var light = new THREE.AmbientLight( 0x404040 ); // soft white light
+scene.add( light );
+
+				var geometry = new THREE.BoxGeometry( 200,200,200 );
+				var material = new THREE.MeshPhongMaterial( 
+					{ color: 0x0000ff, overdraw: true});
+				
+				
+					for(i=0;i<size;i++)
+					{
+					
+					cube = new THREE.Mesh( geometry, material );
+					cube.position.x = 300*Math.cos(PI2*i/size);
+					cube.position.y = 300*Math.sin(PI2*i/size);
+					cube.scale.x = 0.2
+					
+					//cube.rotation.x = PI2*2*i/size;
+					cube.rotation.z = PI2*i/size+PI2/4;
+					cube.geometry.applyMatrix( new THREE.Matrix4().makeRotationX( Math.PI /2* i/size ) );
+					scene.add( cube );
+					cubes.push(cube);	
+					}
+					
+					var geometry = new THREE.BoxGeometry( 300, 300, 300);
+					var material = new THREE.MeshPhongMaterial( 
+					{ color: 0x0000ff, overdraw: true, transparent: true});
+					material.opacity = 0.2;
+					
+					for(i=0;i<size;i++)
+					{
+					
+					cube = new THREE.Mesh( geometry, material );
+					cube.position.x = 600*Math.cos(PI2*i/size);
+					cube.position.y = 600*Math.sin(PI2*i/size);
+					cube.position.z = -200;
+					cube.scale.x = 0.2
+					
+					cube.rotation.z = PI2*i/size+PI2/4;
+					cube.geometry.applyMatrix( new THREE.Matrix4().makeRotationX( Math.PI /2* i/size ) );
+					group.add(cube);
+					//scene.add( cube );
+					cubes2.push(cube);	
+					}
+					//group.rotation.z = 1;
+					//group.rotation.x = 1;
+
+				renderer = new THREE.CanvasRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+				//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
+				controls.enableDamping = true;
+				controls.dampingFactor = 0.55;
+				controls.enableZoom = true;
+				
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+			var p = document.getElementById('tension')
+			p.addEventListener('input', showVal)
+			
+			function showVal(val) {
+			addTheta += val;
+			console.log(addTheta);
+			}
+			function showRotX(val) {
+			addRotX = val;
+			}
+			function showRotY(val) {
+			addRotY = val;
+			}
+			function showPosX(val) {
+			addPosX = val;
+			}
+			
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+
+			function animate() {
+			theta += 0.02;
+			delta += 0.001;
+			delta2 = delta;//Math.sin(delta)*10;
+			
+			requestAnimationFrame( animate );
+			
+			
+				for(i=0;i<cubes.length;i++){
+					cubes[i].scale.y = Math.abs(Math.sin((Math.PI*i/size)+theta));
+					cubes[i].scale.x = Math.abs(Math.sin((Math.PI*i/size)+theta)*0.2);
+					cubes[i].scale.z = Math.abs(Math.sin((Math.PI*i/size)+theta));
+					
+					cubes[i].geometry.applyMatrix( new THREE.Matrix4().makeRotationX(-0.001) );
+					//cubes[i].rotation.y += Math.sin(Math.PI)/100;
+					//cubes[i].rotation.x += Math.cos(Math.PI*2)/100;
+					//cubes[i].rotation.z += Math.sin(Math.PI*i/size)/100;
+				}
+				//group.rotation.z += 0.01;
+
+				
+				//the pulse of each cube should happen at the half size of the one beside it.
+				//So I need to separate(offset) each cubes pulses by an equal fraction of pi 
+				
+				//separating them by a fraction of 2pi gives another interesting result.
+				
+				//to make it so the pulses travel back and forth I used sin to get an osillating 
+				//delta and scaled it by 10
+					
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				controls.update(); // required if controls.enableDamping = true, or if controls.autoRotate = true
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>
